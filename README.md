@@ -16,4 +16,6 @@
 
 在项目目录运行 `node --test`。手工检查按 [验收清单](tests/acceptance.md) 执行，需分别在 Chrome 和 Edge 打开本地文件，并用手机扫描导出图片中的测试二维码。临时素材与导出结果放在 `work/`；该目录已被 Git 忽略。
 
+当前浏览器与真机扫码验收尚未执行，具体状态记录在验收清单中。
+
 需求与尺寸规则见 [产品需求](docs/prd-example.md)，实现步骤见 [实施方案](docs/implementation-plan.md)。公开发布需按 [项目规则](AGENTS.md) 单独确认。
