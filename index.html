@@ -20,7 +20,7 @@
     section { border-top: 1px solid #e6e9ee; padding: 22px 0 20px; }
     h2 { margin: 0 0 15px; font-size: 13px; color: #53617a; }
     label { display: block; font-size: 13px; color: #4b5c75; font-weight: 700; margin-bottom: 8px; }
-    .field { margin-bottom: 15px; }
+    .field { min-width: 0; margin-bottom: 15px; }
     .field:last-child { margin-bottom: 0; }
     input:not([type="file"]), select, textarea { display: block; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #d4ddec; border-radius: 8px; background: #fff; color: #252a34; outline-color: #ff4b5b; }
     textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
@@ -45,25 +45,7 @@
     .status { min-height: 18px; color: #52647e; font-size: 12px; margin: -10px 0 0; }
     .preview-area { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 35px; background-color: #f5f6f8; background-image: linear-gradient(#e8ebef 1px, transparent 1px), linear-gradient(90deg, #e8ebef 1px, transparent 1px); background-size: 28px 28px; }
     .preview-frame { width: min(390px, 100%); aspect-ratio: 9 / 16; background: white; border-radius: 18px; box-shadow: 0 16px 36px #1d243012; overflow: hidden; }
-    .preview-fallback { height: 100%; display: flex; flex-direction: column; color: #222831; font-size: 12px; }
-    .poster-top { background: #ff4b5b; color: #fff; padding: 13px 20px; font-weight: 700; display: flex; justify-content: space-between; gap: 10px; }
-    .poster-tag { background: #ffffff45; border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
-    .poster-main { flex: 1; padding: 8px 20px 0; min-height: 0; display: flex; flex-direction: column; }
-    .poster-title { font-size: 18px; font-weight: 800; line-height: 1.3; margin: 0 0 8px; }
-    .poster-subtitle { color: #7b879b; background: #f2f4f7; border-radius: 99px; padding: 5px 9px; align-self: start; }
-    .poster-image-placeholder { width: 60%; max-height: 45%; aspect-ratio: 3 / 4; margin: 12px auto 0; display: grid; place-items: center; background: #f0f3f6; color: #99a5b6; border-radius: 14px; box-shadow: 0 6px 14px #33415518; }
-    .poster-image-placeholder canvas, .poster-qr-placeholder canvas { width: 100%; height: 100%; }
-    .poster-bullets { margin: auto 0 8px; padding: 0; list-style: none; font-weight: 700; }
-    .poster-bullets li { margin: 3px 0; }
-    .poster-bullets li::before { content: counter(item); counter-increment: item; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #ff4b5b; color: #fff; margin-right: 7px; font-size: 10px; }
-    .poster-bullets { counter-reset: item; }
-    .poster-price { background: #fff4f5; border: 1px solid #ffcdd2; border-radius: 10px; padding: 8px 12px; color: #ff4b5b; font-weight: 800; font-size: 22px; }
-    .poster-price small { color: #a7b0bf; font-size: 11px; font-weight: 400; text-decoration: line-through; margin-left: 10px; }
-    .poster-note { margin-top: 7px; padding: 8px; border-radius: 9px; background: #f2f4f7; color: #5e6b7f; font-size: 11px; }
-    .poster-bottom { margin: 8px 20px 26px; border-top: 1px dashed #d8dee7; padding-top: 7px; display: flex; gap: 10px; align-items: center; }
-    .poster-qr-placeholder { width: 51px; height: 51px; flex: 0 0 51px; display: grid; place-items: center; background: #f0f3f6; color: #9aa7ba; border-radius: 7px; font-size: 10px; }
-    .poster-cta { font-size: 12px; font-weight: 800; }
-    .poster-cta small { display: block; color: #8c98a9; font-size: 10px; font-weight: 400; }
+    #poster-canvas { display: block; width: 100%; height: 100%; }
     @media (max-width: 800px) { .app { display: block; } .editor { height: auto; overflow: visible; border-right: 0; } .preview-area { min-height: 80vh; padding: 28px 16px; } .actions { bottom: 0; } }
     @media (max-width: 390px) { .editor { padding: 20px 15px; } .template { font-size: 12px; } }
   </style>
@@ -115,12 +97,7 @@
     </div>
     <div class="preview-area" aria-label="海报预览">
       <div class="preview-frame">
-        <div id="preview-fallback" class="preview-fallback">
-          <div class="poster-top"><span id="preview-brand"></span><span id="preview-tag" class="poster-tag"></span></div>
-          <div class="poster-main"><p id="preview-title" class="poster-title"></p><span id="preview-subtitle" class="poster-subtitle"></span><div class="poster-image-placeholder"><span id="image-placeholder">商品主图</span><canvas id="fallback-image" width="300" height="400" hidden></canvas></div><ol id="preview-bullets" class="poster-bullets"></ol><div id="preview-price" class="poster-price"></div><div id="preview-note" class="poster-note"></div></div>
-          <div class="poster-bottom"><div class="poster-qr-placeholder"><span id="qr-placeholder">二维码</span><canvas id="fallback-qr" width="100" height="100" hidden></canvas></div><div class="poster-cta"><span id="preview-cta"></span><small id="preview-cta-sub"></small><small id="preview-shipping"></small></div></div>
-        </div>
-        <canvas id="poster-canvas" width="720" height="1280" hidden aria-label="海报画布"></canvas>
+        <canvas id="poster-canvas" width="720" height="1280" aria-label="海报画布"></canvas>
       </div>
     </div>
   </main>
@@ -218,6 +195,149 @@
       };
     }
 
+    function computeImagePlacement(source, box, ratioMode, fitMode) {
+      const sourceRatio = source.width / source.height;
+      const ratio = ratioMode === '3:4' ? 0.75 : ratioMode === '1:1' ? 1 :
+        ratioMode === 'auto' && sourceRatio >= 0.9 && sourceRatio <= 1.1 ? 1 :
+        Math.max(0.55, Math.min(1.3, sourceRatio));
+      const width = Math.min(box.width, box.height * ratio);
+      const height = width / ratio;
+      const x = box.x + (box.width - width) / 2;
+      const y = box.y + (box.height - height) / 2;
+      const scale = fitMode === 'cover' ? Math.max(width / source.width, height / source.height) : Math.min(width / source.width, height / source.height);
+      const sourceWidth = fitMode === 'cover' ? width / scale : source.width;
+      const sourceHeight = fitMode === 'cover' ? height / scale : source.height;
+      const drawWidth = fitMode === 'cover' ? width : source.width * scale;
+      const drawHeight = fitMode === 'cover' ? height : source.height * scale;
+      return {
+        x, y, width, height, drawX: x + (width - drawWidth) / 2, drawY: y + (height - drawHeight) / 2,
+        drawWidth, drawHeight, sourceX: (source.width - sourceWidth) / 2, sourceY: (source.height - sourceHeight) / 2,
+        sourceWidth, sourceHeight,
+      };
+    }
+
+    function wrapText(text, maxWidth, size, measureText) {
+      const lines = [];
+      for (const paragraph of String(text).replace(/\r\n?/g, '\n').split('\n')) {
+        let line = '';
+        for (const character of Array.from(paragraph)) {
+          if (line && measureText(line + character, size) > maxWidth) { lines.push(line); line = character; }
+          else line += character;
+        }
+        lines.push(line);
+      }
+      return lines;
+    }
+
+    function buildPosterLayout(state, measureText) {
+      const theme = { center: '#FF4B5B', left: '#20A9C7', hero: '#FF783F' }[state.template] || '#FF4B5B';
+      const regions = {
+        image: state.template === 'left' ? { x: 32, y: 224, width: 396, height: 620 } :
+          state.template === 'hero' ? { x: 32, y: 224, width: 656, height: 466 } :
+          { x: 120, y: 224, width: 480, height: 426 },
+        bullets: state.template === 'left' ? { x: 448, y: 224, width: 240, height: 620 } :
+          state.template === 'hero' ? { x: 48, y: 700, width: 624, height: 144 } :
+          { x: 48, y: 660, width: 624, height: 184 },
+      };
+      const elements = [];
+      const errors = [];
+      const rect = (x, y, width, height, color) => elements.push({ kind: 'rect', x, y, width, height, color });
+      function text(field, value, box, size, lineHeight, color = '#242832', weight = 'normal') {
+        if (!String(value ?? '').trim()) return;
+        const lines = wrapText(String(value).trim(), box.width, size, measureText);
+        const capacity = Math.floor(box.height / lineHeight);
+        if (lines.length > capacity || lines.some(line => measureText(line, size) > box.width)) errors.push({ field, message: `${field === 'bullets' ? '核心卖点' : field === 'leaderNote' ? '团长说' : field === 'title' ? '商品标题' : field}内容放不下，请缩短文字` });
+        lines.slice(0, capacity).forEach((line, index) => elements.push({ kind: 'text', field, text: line, x: box.x, y: box.y + index * lineHeight, fontSize: size, color, weight }));
+      }
+      rect(0, 0, 720, 96, theme);
+      text('brand', state.brand, { x: 32, y: 39, width: 445, height: 38 }, 21, 30, '#ffffff', 'bold');
+      if (String(state.tag).trim()) {
+        rect(520, 34, 168, 36, '#ffffff44');
+        text('tag', state.tag, { x: 532, y: 39, width: 145, height: 30 }, 18, 26, '#ffffff', 'bold');
+      }
+      const titleHeight = String(state.subtitle).trim() ? 84 : 108;
+      text('title', state.title, { x: 32, y: 104, width: 656, height: titleHeight }, 34, 42, '#242832', 'bold');
+      text('subtitle', state.subtitle, { x: 40, y: 191, width: 640, height: 25 }, 18, 25, '#738098');
+      const imageBox = regions.image;
+      const imagePlacement = computeImagePlacement(state.image || { width: 3, height: 4 }, imageBox, state.ratioMode, state.fitMode);
+      rect(imagePlacement.x, imagePlacement.y, imagePlacement.width, imagePlacement.height, '#eff2f5');
+      if (state.image) elements.push({ kind: 'image', field: 'image', placement: imagePlacement });
+      else {
+        elements.push({ kind: 'placeholder-image', x: imagePlacement.x, y: imagePlacement.y, width: imagePlacement.width, height: imagePlacement.height });
+        text('image', '商品主图', { x: imagePlacement.x + imagePlacement.width / 2 - 66, y: imagePlacement.y + imagePlacement.height / 2 - 12, width: 132, height: 28 }, 22, 28, '#9ca8b9');
+      }
+      let bulletY = regions.bullets.y;
+      const bulletTextX = regions.bullets.x + 36;
+      const bulletWidth = regions.bullets.width - 36;
+      const bullets = (state.bullets || []).map(item => String(item).trim()).filter(Boolean);
+      bullets.forEach((bullet, index) => {
+        const lines = wrapText(bullet, bulletWidth, 18, measureText);
+        const rowHeight = Math.max(28, lines.length * 24 + 5);
+        if (bulletY + rowHeight > regions.bullets.y + regions.bullets.height) { errors.push({ field: 'bullets', message: '核心卖点内容放不下，请缩短文字' }); return; }
+        elements.push({ kind: 'badge', x: regions.bullets.x + 11, y: bulletY + 11, number: index + 1, color: theme });
+        text('bullets', bullet, { x: bulletTextX, y: bulletY, width: bulletWidth, height: lines.length * 24 }, 18, 24, '#252a34', 'bold');
+        bulletY += rowHeight;
+      });
+      rect(32, 852, 656, 92, '#fff4f5');
+      rect(32, 852, 656, 2, theme);
+      const group = parseMoneyToCents(state.groupPrice);
+      const original = String(state.originalPrice).trim() ? parseMoneyToCents(state.originalPrice) : null;
+      text('groupPrice', group === null ? '¥ —' : `¥ ${(group / 100).toFixed(2)}`, { x: 50, y: 866, width: 370, height: 62 }, 52, 62, theme, 'bold');
+      if (original !== null && group !== null && original > group) {
+        const originalLabel = `原价 ¥${(original / 100).toFixed(2)}`;
+        text('originalPrice', originalLabel, { x: 446, y: 864, width: 225, height: 26 }, 20, 26, '#8e99aa');
+        elements.push({ kind: 'strike', x: 446, y: 876, width: Math.min(225, measureText(originalLabel, 20)), color: '#8e99aa' });
+        text('discount', `立省 ¥${((original - group) / 100).toFixed(2)}`, { x: 446, y: 898, width: 225, height: 30 }, 20, 26, theme, 'bold');
+      }
+      if (String(state.leaderNote).trim()) {
+        rect(32, 952, 656, 56, '#f3f5f8');
+        text('leaderNote', `团长说：${state.leaderNote}`, { x: 48, y: 956, width: 624, height: 48 }, 16, 24, '#566177');
+      }
+      rect(32, 1016, 656, 232, '#f7f8fa');
+      rect(32, 1020, 224, 224, '#ffffff');
+      elements.push({ kind: 'qr', field: 'qr', x: 56, y: 1044, width: 176, height: 176, quietZone: 24 });
+      text('ctaMain', state.ctaMain, { x: 280, y: 1046, width: 392, height: 36 }, 24, 32, '#242832', 'bold');
+      text('ctaSub', state.ctaSub, { x: 280, y: 1090, width: 392, height: 28 }, 18, 26, '#738098');
+      text('shipping', state.shipping, { x: 280, y: 1130, width: 392, height: 82 }, 16, 24, '#738098');
+      return { theme, regions, elements, errors };
+    }
+
+    function drawPoster(ctx, state, layout) {
+      ctx.save();
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 720, 1280);
+      for (const element of layout.elements) {
+        if (element.kind === 'rect') { ctx.fillStyle = element.color; ctx.fillRect(element.x, element.y, element.width, element.height); }
+        if (element.kind === 'strike') { ctx.fillStyle = element.color; ctx.fillRect(element.x, element.y, element.width, 2); }
+        if (element.kind === 'text') {
+          ctx.fillStyle = element.color;
+          ctx.font = `${element.weight} ${element.fontSize}px "Microsoft YaHei", "PingFang SC", sans-serif`;
+          ctx.textBaseline = 'top'; ctx.fillText(element.text, element.x, element.y);
+        }
+        if (element.kind === 'badge') {
+          ctx.fillStyle = element.color; ctx.beginPath(); ctx.arc(element.x, element.y, 13, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px "Microsoft YaHei", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(element.number), element.x, element.y + 1); ctx.textAlign = 'left';
+        }
+        if (element.kind === 'image' && state.image) {
+          const p = element.placement;
+          ctx.drawImage(state.image.bitmap, p.sourceX, p.sourceY, p.sourceWidth, p.sourceHeight, p.drawX, p.drawY, p.drawWidth, p.drawHeight);
+        }
+        if (element.kind === 'qr') {
+          if (state.qr) {
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(element.x, element.y, element.width, element.height);
+            const scale = Math.min(element.width / state.qr.width, element.height / state.qr.height);
+            const width = state.qr.width * scale; const height = state.qr.height * scale;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(state.qr.bitmap, element.x + (element.width - width) / 2, element.y + (element.height - height) / 2, width, height);
+            ctx.imageSmoothingEnabled = true;
+          } else {
+            ctx.fillStyle = '#eef1f5'; ctx.fillRect(element.x, element.y, element.width, element.height);
+            ctx.fillStyle = '#9ba7b9'; ctx.font = '20px "Microsoft YaHei", sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText('二维码', element.x + 88, element.y + 88); ctx.textAlign = 'left';
+          }
+        }
+      }
+      ctx.restore();
+    }
+
     function init() {
       let state = createDefaultState();
       let dirty = false;
@@ -229,26 +349,15 @@
       const $ = selector => document.querySelector(selector);
       const $$ = selector => Array.from(document.querySelectorAll(selector));
       const status = $('#status');
+      const canvas = $('#poster-canvas');
+      const context = canvas.getContext('2d');
+      const measure = (value, size, weight = 'normal') => { context.font = `${weight} ${size}px "Microsoft YaHei", "PingFang SC", sans-serif`; return context.measureText(value).width; };
 
       function setStatus(text) { status.textContent = text; }
-      function showErrors() {
-        const errors = validateFields(state);
+      function showErrors(layoutErrors) {
+        const errors = [...validateFields(state), ...layoutErrors];
         $$('[data-error]').forEach(node => { node.textContent = uploadErrors[node.dataset.error] || errors.find(error => error.field === node.dataset.error)?.message || ''; });
         return errors;
-      }
-      function drawFallbackImage(kind, canvasId, placeholderId) {
-        const entry = state[kind];
-        const canvas = $(canvasId);
-        const placeholder = $(placeholderId);
-        canvas.hidden = !entry;
-        placeholder.hidden = !!entry;
-        if (!entry) return;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const scale = Math.min(canvas.width / entry.width, canvas.height / entry.height);
-        const width = entry.width * scale;
-        const height = entry.height * scale;
-        ctx.drawImage(entry.bitmap, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
       }
       function renderBullets() {
         const list = $('#bullet-list');
@@ -263,26 +372,11 @@
         });
         $('#add-bullet').disabled = state.bullets.length >= 6;
       }
-      function renderFallback() {
-        $('#preview-brand').textContent = state.brand;
-        $('#preview-tag').textContent = state.tag;
-        $('#preview-title').textContent = state.title;
-        $('#preview-subtitle').textContent = state.subtitle;
-        $('#preview-bullets').replaceChildren(...state.bullets.filter(item => item.trim()).map(item => { const li = document.createElement('li'); li.textContent = item; return li; }));
-        const cents = parseMoneyToCents(state.groupPrice);
-        $('#preview-price').textContent = cents === null ? '¥ —' : `¥ ${ (cents / 100).toFixed(2) }`;
-        const original = parseMoneyToCents(state.originalPrice);
-        if (original !== null && cents !== null && original > cents) { const small = document.createElement('small'); small.textContent = `¥${(original / 100).toFixed(2)}`; $('#preview-price').append(small); }
-        $('#preview-note').textContent = state.leaderNote;
-        $('#preview-cta').textContent = state.ctaMain;
-        $('#preview-cta-sub').textContent = state.ctaSub;
-        $('#preview-shipping').textContent = state.shipping;
-        drawFallbackImage('image', '#fallback-image', '#image-placeholder');
-        drawFallbackImage('qr', '#fallback-qr', '#qr-placeholder');
-      }
       function refresh() {
         $$('[data-template]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.template === state.template)));
-        showErrors(); renderFallback();
+        const layout = buildPosterLayout(state, measure);
+        showErrors(layout.errors);
+        drawPoster(context, state, layout);
       }
       function fillInputs() {
         $$('[data-field]').forEach(input => { input.value = state[input.dataset.field]; });
@@ -314,7 +408,7 @@
       $('#export').addEventListener('click', () => { setStatus('请先完成图片上传和海报预览。'); });
       fillInputs();
     }
-    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields, validateImageMeta, createImageSelectionController }, init };
+    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields, validateImageMeta, createImageSelectionController, computeImagePlacement, buildPosterLayout, drawPoster }, init };
   })();
   if (typeof document !== 'undefined') app.init();
   </script>
