@@ -52,6 +52,7 @@
     .poster-title { font-size: 18px; font-weight: 800; line-height: 1.3; margin: 0 0 8px; }
     .poster-subtitle { color: #7b879b; background: #f2f4f7; border-radius: 99px; padding: 5px 9px; align-self: start; }
     .poster-image-placeholder { width: 60%; max-height: 45%; aspect-ratio: 3 / 4; margin: 12px auto 0; display: grid; place-items: center; background: #f0f3f6; color: #99a5b6; border-radius: 14px; box-shadow: 0 6px 14px #33415518; }
+    .poster-image-placeholder canvas, .poster-qr-placeholder canvas { width: 100%; height: 100%; }
     .poster-bullets { margin: auto 0 8px; padding: 0; list-style: none; font-weight: 700; }
     .poster-bullets li { margin: 3px 0; }
     .poster-bullets li::before { content: counter(item); counter-increment: item; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #ff4b5b; color: #fff; margin-right: 7px; font-size: 10px; }
@@ -116,8 +117,8 @@
       <div class="preview-frame">
         <div id="preview-fallback" class="preview-fallback">
           <div class="poster-top"><span id="preview-brand"></span><span id="preview-tag" class="poster-tag"></span></div>
-          <div class="poster-main"><p id="preview-title" class="poster-title"></p><span id="preview-subtitle" class="poster-subtitle"></span><div class="poster-image-placeholder">商品主图</div><ol id="preview-bullets" class="poster-bullets"></ol><div id="preview-price" class="poster-price"></div><div id="preview-note" class="poster-note"></div></div>
-          <div class="poster-bottom"><div class="poster-qr-placeholder">二维码</div><div class="poster-cta"><span id="preview-cta"></span><small id="preview-cta-sub"></small><small id="preview-shipping"></small></div></div>
+          <div class="poster-main"><p id="preview-title" class="poster-title"></p><span id="preview-subtitle" class="poster-subtitle"></span><div class="poster-image-placeholder"><span id="image-placeholder">商品主图</span><canvas id="fallback-image" width="300" height="400" hidden></canvas></div><ol id="preview-bullets" class="poster-bullets"></ol><div id="preview-price" class="poster-price"></div><div id="preview-note" class="poster-note"></div></div>
+          <div class="poster-bottom"><div class="poster-qr-placeholder"><span id="qr-placeholder">二维码</span><canvas id="fallback-qr" width="100" height="100" hidden></canvas></div><div class="poster-cta"><span id="preview-cta"></span><small id="preview-cta-sub"></small><small id="preview-shipping"></small></div></div>
         </div>
         <canvas id="poster-canvas" width="720" height="1280" hidden aria-label="海报画布"></canvas>
       </div>
@@ -179,9 +180,52 @@
       return errors;
     }
 
+    function validateImageMeta(file, width, height, kind) {
+      const errors = [];
+      const field = kind === 'qr' ? 'qr' : 'image';
+      const add = message => errors.push({ field, message });
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file?.type)) add('仅支持 JPG、PNG 或 WebP 图片');
+      if (!Number.isFinite(file?.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) add('图片不能超过 10 MB，且不能是空文件');
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || width * height > 16000000) add('图片解码像素不能超过 1600 万');
+      if (kind === 'qr' && (width < 320 || height < 320 || width / height < 0.95 || width / height > 1.05)) add('请上传至少 320 × 320 像素的正方形二维码');
+      return errors;
+    }
+
+    function createImageSelectionController(decode) {
+      const selected = { image: null, qr: null };
+      const request = { image: 0, qr: 0 };
+      function close(entry) { if (entry?.bitmap && typeof entry.bitmap.close === 'function') entry.bitmap.close(); }
+      return {
+        current(kind) { return selected[kind]; },
+        clear(kind) { request[kind] += 1; close(selected[kind]); selected[kind] = null; },
+        async select(kind, file) {
+          const token = ++request[kind];
+          if (!file) return { applied: false, cancelled: true, errors: [] };
+          const early = [];
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) early.push({ field: kind, message: '仅支持 JPG、PNG 或 WebP 图片' });
+          if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) early.push({ field: kind, message: '图片不能超过 10 MB，且不能是空文件' });
+          if (early.length) return { applied: false, errors: early };
+          let decoded;
+          try { decoded = await decode(file); }
+          catch { return { applied: false, errors: [{ field: kind, message: '图片无法解码，请重新选择文件' }] }; }
+          if (token !== request[kind]) { close(decoded); return { applied: false, stale: true, errors: [] }; }
+          const errors = validateImageMeta(file, decoded.width, decoded.height, kind);
+          if (errors.length) { close(decoded); return { applied: false, errors }; }
+          close(selected[kind]);
+          selected[kind] = { file, bitmap: decoded.bitmap, width: decoded.width, height: decoded.height };
+          return { applied: true, errors: [] };
+        },
+      };
+    }
+
     function init() {
       let state = createDefaultState();
       let dirty = false;
+      const selection = createImageSelectionController(async file => {
+        const bitmap = await createImageBitmap(file);
+        return { bitmap, width: bitmap.width, height: bitmap.height };
+      });
+      const uploadErrors = { image: '', qr: '' };
       const $ = selector => document.querySelector(selector);
       const $$ = selector => Array.from(document.querySelectorAll(selector));
       const status = $('#status');
@@ -189,8 +233,22 @@
       function setStatus(text) { status.textContent = text; }
       function showErrors() {
         const errors = validateFields(state);
-        $$('[data-error]').forEach(node => { node.textContent = errors.find(error => error.field === node.dataset.error)?.message || ''; });
+        $$('[data-error]').forEach(node => { node.textContent = uploadErrors[node.dataset.error] || errors.find(error => error.field === node.dataset.error)?.message || ''; });
         return errors;
+      }
+      function drawFallbackImage(kind, canvasId, placeholderId) {
+        const entry = state[kind];
+        const canvas = $(canvasId);
+        const placeholder = $(placeholderId);
+        canvas.hidden = !entry;
+        placeholder.hidden = !!entry;
+        if (!entry) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / entry.width, canvas.height / entry.height);
+        const width = entry.width * scale;
+        const height = entry.height * scale;
+        ctx.drawImage(entry.bitmap, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
       }
       function renderBullets() {
         const list = $('#bullet-list');
@@ -219,6 +277,8 @@
         $('#preview-cta').textContent = state.ctaMain;
         $('#preview-cta-sub').textContent = state.ctaSub;
         $('#preview-shipping').textContent = state.shipping;
+        drawFallbackImage('image', '#fallback-image', '#image-placeholder');
+        drawFallbackImage('qr', '#fallback-qr', '#qr-placeholder');
       }
       function refresh() {
         $$('[data-template]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.template === state.template)));
@@ -231,14 +291,30 @@
       $$('[data-field]').forEach(input => input.addEventListener('input', () => { state[input.dataset.field] = input.value; dirty = true; refresh(); }));
       $$('[data-template]').forEach(button => button.addEventListener('click', () => { state.template = button.dataset.template; dirty = true; refresh(); }));
       $('#add-bullet').addEventListener('click', () => { if (state.bullets.length < 6) { state.bullets.push(''); dirty = true; renderBullets(); refresh(); } });
+      async function onFileChange(kind, event) {
+        const file = event.target.files?.[0] || null;
+        if (!file) return;
+        setStatus('正在检查图片…');
+        const result = await selection.select(kind, file);
+        event.target.value = '';
+        if (result.stale) return;
+        uploadErrors[kind] = result.errors?.[0]?.message || '';
+        if (result.applied) { state[kind] = selection.current(kind); dirty = true; setStatus(kind === 'qr' ? '二维码已更新' : '商品主图已更新'); }
+        else setStatus(uploadErrors[kind] || '未更换图片');
+        refresh();
+      }
+      $('#image-file').addEventListener('change', event => onFileChange('image', event));
+      $('#qr-file').addEventListener('change', event => onFileChange('qr', event));
       $('#reset').addEventListener('click', () => {
         if (dirty && !window.confirm('恢复示例会覆盖当前编辑内容，确定继续吗？')) return;
+        selection.clear('image'); selection.clear('qr'); uploadErrors.image = ''; uploadErrors.qr = '';
+        $('#image-file').value = ''; $('#qr-file').value = '';
         state = createDefaultState(); dirty = false; fillInputs(); setStatus('已恢复示例');
       });
       $('#export').addEventListener('click', () => { setStatus('请先完成图片上传和海报预览。'); });
       fillInputs();
     }
-    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields }, init };
+    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields, validateImageMeta, createImageSelectionController }, init };
   })();
   if (typeof document !== 'undefined') app.init();
   </script>

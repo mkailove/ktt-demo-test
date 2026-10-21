@@ -2,7 +2,7 @@
 
 本地网页版单商品海报编辑器。第一版只使用根目录的 `index.html`，直接在 Chrome 或 Edge 中打开，无需安装依赖或启动服务。
 
-当前正在按 [产品需求](docs/prd-example.md) 和 [实施方案](docs/implementation-plan.md) 开发。页面先提供商品字段、卖点和恢复示例；图片上传、正式预览及 PNG 导出会在后续任务接入。
+当前正在按 [产品需求](docs/prd-example.md) 和 [实施方案](docs/implementation-plan.md) 开发。页面已提供商品字段、卖点、恢复示例，以及商品主图和二维码的本地上传校验；三模板正式预览与 PNG 导出会在后续任务接入。
 
 运行自动化测试：
 
