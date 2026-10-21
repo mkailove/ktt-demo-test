@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadCore } from './support.mjs';
 
 const core = loadCore();
-const measure = (text, size) => Array.from(text).length * size * 0.9;
+const measure = (text, size) => Array.from(text).reduce((width, character) => width + size * (/^[\x00-\xff]$/.test(character) ? 0.55 : 1), 0);
 
 function validState() {
   const state = core.createDefaultState();

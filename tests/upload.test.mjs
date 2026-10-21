@@ -5,23 +5,20 @@ import { loadCore } from './support.mjs';
 const core = loadCore();
 const imageFile = { name: 'photo.png', type: 'image/png', size: 1024 };
 
-test('accepts supported decoded images within size limits', () => {
-  assert.equal(Array.from(core.validateImageMeta(imageFile, 1200, 1200, 'image')).length, 0);
-  assert.equal(Array.from(core.validateImageMeta({ ...imageFile, type: 'image/jpeg' }, 1200, 1200, 'image')).length, 0);
-  assert.equal(Array.from(core.validateImageMeta({ ...imageFile, type: 'image/webp' }, 1200, 1200, 'image')).length, 0);
+test('accepts decoded images without fixed format, file size or pixel limits', () => {
+  assert.equal(core.validateImageMeta({ ...imageFile, name: 'photo.gif', type: 'image/gif' }, 1200, 1200, 'image').length, 0);
+  assert.equal(core.validateImageMeta({ ...imageFile, name: 'photo.avif', type: 'image/avif', size: 100 * 1024 * 1024 }, 5000, 4000, 'image').length, 0);
+  assert.equal(core.validateImageMeta({ ...imageFile, name: 'photo.unknown', type: '' }, 100, 100, 'image').length, 0);
 });
 
-test('rejects unsupported types, huge files and oversized pixel counts', () => {
-  assert.ok(core.validateImageMeta({ ...imageFile, type: 'image/gif' }, 100, 100, 'image').length);
-  assert.ok(core.validateImageMeta({ ...imageFile, size: 10 * 1024 * 1024 + 1 }, 100, 100, 'image').length);
-  assert.ok(core.validateImageMeta(imageFile, 4001, 4000, 'image').length);
+test('rejects images with invalid decoded dimensions', () => {
   assert.ok(core.validateImageMeta(imageFile, 0, 100, 'image').length);
+  assert.ok(core.validateImageMeta(imageFile, 100, Number.NaN, 'image').length);
 });
 
-test('QR source must be square and at least 320 pixels on each side', () => {
-  assert.equal(core.validateImageMeta(imageFile, 320, 320, 'qr').length, 0);
-  assert.ok(core.validateImageMeta(imageFile, 319, 320, 'qr').length);
-  assert.ok(core.validateImageMeta(imageFile, 500, 400, 'qr').length);
+test('accepts rectangular and small decoded QR images', () => {
+  assert.equal(core.validateImageMeta({ ...imageFile, type: 'image/gif', size: 25 * 1024 * 1024 }, 180, 90, 'qr').length, 0);
+  assert.equal(core.validateImageMeta(imageFile, 1, 1, 'qr').length, 0);
 });
 
 test('failed decode and cancelled selection preserve the previous image', async () => {
@@ -50,25 +47,19 @@ test('a slow old selection cannot overwrite the later selection', async () => {
   assert.equal(controller.current('image').file.name, 'new.png');
 });
 
-test('a file labeled PNG with non-image bytes cannot replace the previous image', async () => {
-  const controller = core.createImageSelectionController(async () => ({ bitmap: { close() {} }, width: 500, height: 500 }));
-  await controller.select('image', imageFile);
-  const previous = controller.current('image');
-  const fake = new Blob([new Uint8Array([71, 73, 70, 56, 57, 97, 0, 0, 0, 0, 0, 0])], { type: 'image/png' });
-  fake.name = 'fake.png';
-  const result = await controller.select('image', fake);
-  assert.equal(result.applied, false);
-  assert.equal(controller.current('image'), previous);
+test('uses successful browser decoding even when file metadata differs', async () => {
+  const controller = core.createImageSelectionController(async () => ({ bitmap: { close() {} }, width: 500, height: 400 }));
+  const file = { name: 'picture.data', type: 'application/octet-stream', size: 25 * 1024 * 1024 };
+  assert.equal((await controller.select('image', file)).applied, true);
+  assert.equal((await controller.select('qr', file)).applied, true);
 });
 
-test('a stale file-read error does not surface after a newer image succeeds', async () => {
+test('a stale decode error does not surface after a newer image succeeds', async () => {
   let rejectOld;
-  const controller = core.createImageSelectionController(async () => ({ bitmap: { close() {} }, width: 500, height: 500 }));
-  const delayed = {
-    name: 'old.png', type: 'image/png', size: 100,
-    slice: () => ({ arrayBuffer: () => new Promise((_, reject) => { rejectOld = reject; }) }),
-  };
-  const pending = controller.select('image', delayed);
+  const controller = core.createImageSelectionController(file => file.name === 'old.png'
+    ? new Promise((_, reject) => { rejectOld = reject; })
+    : Promise.resolve({ bitmap: { close() {} }, width: 500, height: 500 }));
+  const pending = controller.select('image', { ...imageFile, name: 'old.png' });
   assert.equal((await controller.select('image', imageFile)).applied, true);
   rejectOld(new Error('read failed'));
   assert.equal((await pending).stale, true);

@@ -12,23 +12,24 @@
     button { cursor: pointer; }
     button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #308bed; outline-offset: 2px; }
     .app { display: grid; grid-template-columns: minmax(340px, 500px) minmax(0, 1fr); min-height: 100vh; }
-    .editor { background: #fff; border-right: 1px solid #e5e8ee; height: 100vh; overflow-y: auto; padding: 28px 24px 22px; }
+    .editor { background: #fff; border-right: 1px solid #e5e8ee; height: 100vh; overflow-y: auto; overscroll-behavior: contain; padding: 24px 24px 22px; }
     .brand-line { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
-    .brand-icon { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #333; border-radius: 7px; font-size: 20px; }
+    .brand-icon { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid #242832; border-radius: 7px; color: #242832; }
+    .brand-icon svg { width: 23px; height: 23px; }
     h1 { font-size: 20px; margin: 0; letter-spacing: -.04em; }
-    .local-badge { background: #e4f8eb; color: #27975d; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 5px 10px; }
+    .local-badge { background: #e4f8eb; color: #187b47; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 5px 10px; }
     section { border-top: 1px solid #e6e9ee; padding: 22px 0 20px; }
-    h2 { margin: 0 0 15px; font-size: 13px; color: #53617a; }
-    label { display: block; font-size: 13px; color: #4b5c75; font-weight: 700; margin-bottom: 8px; }
+    h2 { margin: 0 0 15px; font-size: 14px; color: #465773; }
+    label { display: block; font-size: 14px; color: #3d4d68; font-weight: 700; margin-bottom: 8px; }
     .field { min-width: 0; margin-bottom: 15px; }
     .field:last-child { margin-bottom: 0; }
     input:not([type="file"]), select, textarea { display: block; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #d4ddec; border-radius: 8px; background: #fff; color: #252a34; outline-color: #ff4b5b; }
     textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
-    input[type="file"] { width: 100%; color: #546178; font-size: 12px; }
-    .help { font-size: 11px; color: #7d89a0; margin-top: 5px; line-height: 1.45; }
+    input[type="file"] { width: 100%; color: #546178; font-size: 14px; }
+    .help { font-size: 12px; color: #66758d; margin-top: 6px; line-height: 1.5; }
     .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
-    .template { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 5px; border: 1px solid #d5deeb; border-radius: 8px; background: #fff; color: #293044; font-size: 14px; min-height: 78px; }
+    .template { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 5px; border: 1px solid #d5deeb; border-radius: 8px; background: #fff; color: #293044; font-size: 16px; min-height: 78px; }
     .template::before { content: ""; display: block; width: 100%; height: 29px; border-radius: 6px; background: var(--swatch); }
     .template[aria-pressed="true"] { border-color: #ff4b5b; color: #ff4b5b; font-weight: 700; box-shadow: 0 0 0 2px #ff4b5b16; }
     .bullet-row { display: grid; grid-template-columns: 1fr 40px; gap: 7px; margin-bottom: 8px; }
@@ -42,18 +43,21 @@
     .actions button { min-height: 46px; border-radius: 7px; font-weight: 700; }
     .reset { background: #fff; border: 1px solid #cbd5e3; color: #75839b; }
     .export { background: #23272f; color: #fff; border: 1px solid #23272f; }
-    .status { min-height: 18px; color: #52647e; font-size: 12px; margin: -10px 0 0; }
+    .status { min-height: 18px; color: #52647e; font-size: 13px; margin: -10px 0 0; }
     .preview-area { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 35px; background-color: #f5f6f8; background-image: linear-gradient(#e8ebef 1px, transparent 1px), linear-gradient(90deg, #e8ebef 1px, transparent 1px); background-size: 28px 28px; }
-    .preview-frame { width: min(390px, 100%); aspect-ratio: 9 / 16; background: white; border-radius: 18px; box-shadow: 0 16px 36px #1d243012; overflow: hidden; }
+    .preview-frame { width: min(390px, 100%); aspect-ratio: 9 / 16; background: white; border: 1px solid transparent; border-radius: 18px; box-shadow: 0 18px 44px #1d243014, 0 3px 10px #1d24300a; overflow: hidden; }
     #poster-canvas { display: block; width: 100%; height: 100%; }
+    button:not(:disabled):active { opacity: .86; }
+    @media (prefers-reduced-motion: no-preference) { .actions button, .template { transition: transform 150ms ease-out; } .actions button:not(:disabled):active, .template:not(:disabled):active { transform: scale(0.96); } }
+    @media (prefers-reduced-motion: reduce) { button { transition: opacity 150ms ease-out; } }
     @media (max-width: 800px) { .app { display: block; } .editor { height: auto; overflow: visible; border-right: 0; } .preview-area { min-height: 80vh; padding: 28px 16px; } .actions { bottom: 0; } }
-    @media (max-width: 390px) { .editor { padding: 20px 15px; } .template { font-size: 12px; } }
+    @media (max-width: 390px) { .editor { padding: 20px 15px; } .template { font-size: 14px; } }
   </style>
 </head>
 <body>
   <main class="app">
     <div class="editor">
-      <header class="brand-line"><span class="brand-icon" aria-hidden="true">🛒</span><h1>快团团素材生成器</h1><span class="local-badge">本地版</span></header>
+      <header class="brand-line"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4h2l2.1 11h11.2l2-8.5H5.1"/><path d="M7.2 15.5h11"/><circle cx="9" cy="19" r="1"/><circle cx="17" cy="19" r="1"/></svg></span><h1>快团团素材生成器</h1><span class="local-badge">本地版</span></header>
       <section aria-labelledby="template-heading">
         <h2 id="template-heading">版式模板</h2>
         <div class="templates" role="group" aria-label="版式模板">
@@ -71,12 +75,12 @@
       </section>
       <section aria-labelledby="image-heading">
         <h2 id="image-heading">图片素材</h2>
-        <div class="field"><label for="image-file">商品主图</label><input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"><div class="help">JPG、PNG、WebP；单张不超过 10 MB。</div><div class="error" data-error="image"></div></div>
+        <div class="field"><label for="image-file">商品主图</label><input id="image-file" type="file"><div class="help">推荐 3:4；方图会自动按 1:1 展示，预览和导出都只在本机处理。</div><div class="error" data-error="image"></div></div>
         <div class="grid-two">
           <div class="field"><label for="ratio-mode">图片展示比例</label><select id="ratio-mode" data-field="ratioMode"><option value="auto">自动识别</option><option value="3:4">3:4</option><option value="1:1">1:1</option><option value="original">保留原图比例</option></select></div>
           <div class="field"><label for="fit-mode">图片适配方式</label><select id="fit-mode" data-field="fitMode"><option value="contain">完整展示</option><option value="cover">铺满裁切</option></select></div>
         </div>
-        <div class="field"><label for="qr-file">二维码</label><input id="qr-file" type="file" accept="image/jpeg,image/png,image/webp"><div class="help">上传已有二维码；成图保留白色静区。</div><div class="error" data-error="qr"></div></div>
+        <div class="field"><label for="qr-file">二维码</label><input id="qr-file" type="file"><div class="help">上传团长二维码或商品码。</div><div class="error" data-error="qr"></div></div>
       </section>
       <section aria-labelledby="bullets-heading"><h2 id="bullets-heading">核心卖点</h2><div id="bullet-list"></div><button id="add-bullet" class="add-bullet" type="button">＋ 添加一条卖点</button><div class="error" data-error="bullets"></div></section>
       <section aria-labelledby="price-heading">
@@ -161,18 +165,8 @@
       const errors = [];
       const field = kind === 'qr' ? 'qr' : 'image';
       const add = message => errors.push({ field, message });
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file?.type)) add('仅支持 JPG、PNG 或 WebP 图片');
-      if (!Number.isFinite(file?.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) add('图片不能超过 10 MB，且不能是空文件');
-      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || width * height > 16000000) add('图片解码像素不能超过 1600 万');
-      if (kind === 'qr' && (width < 320 || height < 320 || width / height < 0.95 || width / height > 1.05)) add('请上传至少 320 × 320 像素的正方形二维码');
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) add('图片无法解码，请重新选择文件');
       return errors;
-    }
-
-    function detectImageMime(bytes) {
-      if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return 'image/png';
-      if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return 'image/jpeg';
-      if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') return 'image/webp';
-      return null;
     }
 
     function createImageSelectionController(decode) {
@@ -185,20 +179,6 @@
         async select(kind, file) {
           const token = ++request[kind];
           if (!file) return { applied: false, cancelled: true, errors: [] };
-          const early = [];
-          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) early.push({ field: kind, message: '仅支持 JPG、PNG 或 WebP 图片' });
-          if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) early.push({ field: kind, message: '图片不能超过 10 MB，且不能是空文件' });
-          if (early.length) return { applied: false, errors: early };
-          if (typeof file.slice === 'function') {
-            try {
-              const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
-              if (token !== request[kind]) return { applied: false, stale: true, errors: [] };
-              if (detectImageMime(header) !== file.type) return { applied: false, errors: [{ field: kind, message: '图片实际格式与文件类型不符' }] };
-            } catch {
-              if (token !== request[kind]) return { applied: false, stale: true, errors: [] };
-              return { applied: false, errors: [{ field: kind, message: '无法读取图片文件' }] };
-            }
-          }
           let decoded;
           try { decoded = await decode(file); }
           catch {
@@ -236,12 +216,12 @@
       };
     }
 
-    function wrapText(text, maxWidth, size, measureText) {
+    function wrapText(text, maxWidth, size, measureText, weight = 'normal') {
       const lines = [];
       for (const paragraph of String(text).replace(/\r\n?/g, '\n').split('\n')) {
         let line = '';
         for (const character of Array.from(paragraph)) {
-          if (line && measureText(line + character, size) > maxWidth) { lines.push(line); line = character; }
+          if (line && measureText(line + character, size, weight) > maxWidth) { lines.push(line); line = character; }
           else line += character;
         }
         lines.push(line);
@@ -251,75 +231,121 @@
 
     function buildPosterLayout(state, measureText) {
       const theme = { center: '#FF4B5B', left: '#20A9C7', hero: '#FF783F' }[state.template] || '#FF4B5B';
+      const isLeft = state.template === 'left';
+      const isHero = state.template === 'hero';
+      const isCenterWide = !isLeft && !isHero && state.image &&
+        (state.ratioMode === 'auto' || state.ratioMode === 'original') && state.image.width / state.image.height > 1.1;
+      const bulletFont = isLeft ? 20 : 22;
+      const bulletLineHeight = isLeft ? 28 : 30;
+      const bulletX = isLeft ? 492 : 90;
+      const bulletWidth = isLeft ? 188 : 584;
+      const bullets = (state.bullets || []).map(item => String(item).trim()).filter(Boolean);
+      const bulletRows = bullets.map(value => {
+        const lines = wrapText(value, bulletWidth, bulletFont, measureText, 'bold');
+        return { value, lines, height: Math.max(36, lines.length * bulletLineHeight + 6) };
+      });
+      const bulletHeight = bulletRows.reduce((sum, row) => sum + row.height, 0);
+      const imageTop = isHero ? 224 : 226;
+      const imageMaxHeight = isHero ? 492 : 520;
+      const imageHeight = isLeft ? 656 : Math.max(320, Math.min(imageMaxHeight, 880 - 28 - bulletHeight - imageTop));
+      const bulletTop = isLeft ? 240 : imageTop + imageHeight + 28;
       const regions = {
-        image: state.template === 'left' ? { x: 32, y: 224, width: 396, height: 620 } :
-          state.template === 'hero' ? { x: 32, y: 224, width: 656, height: 466 } :
-          { x: 120, y: 224, width: 480, height: 426 },
-        bullets: state.template === 'left' ? { x: 448, y: 224, width: 240, height: 620 } :
-          state.template === 'hero' ? { x: 48, y: 700, width: 624, height: 144 } :
-          { x: 48, y: 660, width: 624, height: 184 },
+        image: isLeft ? { x: 32, y: 224, width: 396, height: imageHeight } :
+          isHero ? { x: 32, y: imageTop, width: 656, height: imageHeight } :
+          { x: isCenterWide ? 32 : 100, y: imageTop, width: isCenterWide ? 656 : 520, height: imageHeight },
+        bullets: isLeft ? { x: 448, y: bulletTop, width: 240, height: 640 } :
+          { x: 32, y: bulletTop, width: 656, height: 880 - bulletTop },
       };
       const elements = [];
       const errors = [];
       const rect = (x, y, width, height, color) => elements.push({ kind: 'rect', x, y, width, height, color });
+      const rounded = (x, y, width, height, radius, color, options = {}) => elements.push({ kind: 'round-rect', x, y, width, height, radius, color, ...options });
       function text(field, value, box, size, lineHeight, color = '#242832', weight = 'normal') {
         if (!String(value ?? '').trim()) return;
-        const lines = wrapText(String(value).trim(), box.width, size, measureText);
+        const lines = wrapText(String(value).trim(), box.width, size, measureText, weight);
         const capacity = Math.floor(box.height / lineHeight);
-        if (lines.length > capacity || lines.some(line => measureText(line, size) > box.width)) errors.push({ field, message: `${field === 'bullets' ? '核心卖点' : field === 'leaderNote' ? '团长说' : field === 'title' ? '商品标题' : field}内容放不下，请缩短文字` });
+        if (lines.length > capacity || lines.some(line => measureText(line, size, weight) > box.width)) errors.push({ field, message: `${field === 'bullets' ? '核心卖点' : field === 'leaderNote' ? '团长说' : field === 'title' ? '商品标题' : field}内容放不下，请缩短文字` });
         lines.slice(0, capacity).forEach((line, index) => elements.push({ kind: 'text', field, text: line, x: box.x, y: box.y + index * lineHeight, fontSize: size, color, weight }));
       }
-      rect(0, 0, 720, 96, theme);
-      text('brand', state.brand, { x: 32, y: 39, width: 445, height: 38 }, 21, 30, '#ffffff', 'bold');
-      if (String(state.tag).trim()) {
-        rect(520, 34, 168, 36, '#ffffff44');
-        text('tag', state.tag, { x: 532, y: 39, width: 145, height: 30 }, 18, 26, '#ffffff', 'bold');
+      function centeredText(field, value, x, y, width, size, color, weight = 'normal', align = 'left') {
+        if (measureText(value, size, weight) > width) errors.push({ field, message: `${field}内容放不下，请缩短文字` });
+        elements.push({ kind: 'text', field, text: value, x, y, fontSize: size, color, weight, align, baseline: 'middle' });
       }
-      const titleHeight = String(state.subtitle).trim() ? 84 : 108;
-      text('title', state.title, { x: 32, y: 104, width: 656, height: titleHeight }, 34, 42, '#242832', 'bold');
-      text('subtitle', state.subtitle, { x: 40, y: 191, width: 640, height: 25 }, 18, 25, '#738098');
-      const imageBox = regions.image;
-      const imagePlacement = computeImagePlacement(state.image || { width: 3, height: 4 }, imageBox, state.ratioMode, state.fitMode);
-      rect(imagePlacement.x, imagePlacement.y, imagePlacement.width, imagePlacement.height, '#eff2f5');
-      if (state.image) elements.push({ kind: 'image', field: 'image', placement: imagePlacement });
+      rect(0, 0, 720, 90, theme);
+      const tag = String(state.tag).trim();
+      const tagWidth = tag ? Math.min(172, Math.max(112, measureText(tag, 21, 'bold') + 32)) : 0;
+      if (String(state.brand).trim()) centeredText('brand', String(state.brand).trim(), 36, 45, tag ? 640 - tagWidth : 652, 27, '#ffffff', 'bold');
+      if (tag) {
+        rounded(688 - tagWidth, 22, tagWidth, 46, 23, '#FFE36B');
+        centeredText('tag', tag, 688 - tagWidth / 2, 45, tagWidth - 32, 21, '#242832', 'bold', 'center');
+      }
+      const titleLines = wrapText(String(state.title).trim(), 640, 34, measureText, 'bold');
+      const titleIsSingleLine = titleLines.length <= 1;
+      text('title', state.title, { x: 40, y: titleIsSingleLine ? 106 : 100, width: 640, height: 84 }, 34, 42, '#242832', 'bold');
+      const subtitle = String(state.subtitle).trim();
+      if (subtitle) {
+        const subtitleWidth = Math.min(640, measureText(subtitle, 22, 'bold') + 36);
+        const subtitleY = titleIsSingleLine ? 176 : 184;
+        rounded(40, subtitleY, subtitleWidth, 38, 19, '#F2F4F6');
+        centeredText('subtitle', subtitle, 54, subtitleY + 19, subtitleWidth - 28, 22, '#738098', 'bold');
+      }
+      const imagePlacement = computeImagePlacement(state.image || { width: 3, height: 4 }, regions.image, state.ratioMode, state.fitMode);
+      rounded(imagePlacement.x, imagePlacement.y, imagePlacement.width, imagePlacement.height, 24, '#EFF2F5', { shadow: true });
+      if (state.image) elements.push({ kind: 'image', field: 'image', placement: imagePlacement, radius: 24 });
       else {
         elements.push({ kind: 'placeholder-image', x: imagePlacement.x, y: imagePlacement.y, width: imagePlacement.width, height: imagePlacement.height });
-        text('image', '商品主图', { x: imagePlacement.x + imagePlacement.width / 2 - 66, y: imagePlacement.y + imagePlacement.height / 2 - 12, width: 132, height: 28 }, 22, 28, '#9ca8b9');
+        text('image', '商品主图', { x: imagePlacement.x + imagePlacement.width / 2 - 70, y: imagePlacement.y + imagePlacement.height / 2 - 16, width: 140, height: 32 }, 24, 32, '#8E9BAC');
       }
       let bulletY = regions.bullets.y;
-      const bulletTextX = regions.bullets.x + 36;
-      const bulletWidth = regions.bullets.width - 36;
-      const bullets = (state.bullets || []).map(item => String(item).trim()).filter(Boolean);
-      bullets.forEach((bullet, index) => {
-        const lines = wrapText(bullet, bulletWidth, 18, measureText);
-        const rowHeight = Math.max(28, lines.length * 24 + 5);
-        if (bulletY + rowHeight > regions.bullets.y + regions.bullets.height) { errors.push({ field: 'bullets', message: '核心卖点内容放不下，请缩短文字' }); return; }
-        elements.push({ kind: 'badge', x: regions.bullets.x + 11, y: bulletY + 11, number: index + 1, color: theme });
-        text('bullets', bullet, { x: bulletTextX, y: bulletY, width: bulletWidth, height: lines.length * 24 }, 18, 24, '#252a34', 'bold');
-        bulletY += rowHeight;
+      bulletRows.forEach((row, index) => {
+        if (bulletY + row.height > regions.bullets.y + regions.bullets.height) { errors.push({ field: 'bullets', message: '核心卖点内容放不下，请缩短文字' }); return; }
+        elements.push({ kind: 'badge', x: isLeft ? 468 : 56, y: bulletY + 15, number: index + 1, color: theme });
+        text('bullets', row.value, { x: bulletX, y: bulletY, width: bulletWidth, height: row.lines.length * bulletLineHeight }, bulletFont, bulletLineHeight, '#242832', 'bold');
+        bulletY += row.height;
       });
-      rect(32, 852, 656, 92, '#fff4f5');
-      rect(32, 852, 656, 2, theme);
+      rounded(32, 892, 656, 84, 16, '#FFF3F4', { stroke: '#FFD2D7' });
       const group = parseMoneyToCents(state.groupPrice);
       const original = String(state.originalPrice).trim() ? parseMoneyToCents(state.originalPrice) : null;
-      text('groupPrice', group === null ? '¥ —' : `¥ ${(group / 100).toFixed(2)}`, { x: 50, y: 866, width: 370, height: 62 }, 52, 62, theme, 'bold');
+      const groupLabel = group === null ? '¥ —' : `¥ ${(group / 100).toFixed(2)}`;
+      const originalX = Math.min(374, Math.max(294, 52 + measureText(groupLabel, 56, 'bold') + 20));
+      centeredText('groupPrice', groupLabel, 52, 934, original !== null && group !== null && original > group ? originalX - 64 : 608, 56, theme, 'bold');
       if (original !== null && group !== null && original > group) {
         const originalLabel = `原价 ¥${(original / 100).toFixed(2)}`;
-        text('originalPrice', originalLabel, { x: 446, y: 864, width: 225, height: 26 }, 20, 26, '#8e99aa');
-        elements.push({ kind: 'strike', x: 446, y: 876, width: Math.min(225, measureText(originalLabel, 20)), color: '#8e99aa' });
-        text('discount', `立省 ¥${((original - group) / 100).toFixed(2)}`, { x: 446, y: 898, width: 225, height: 30 }, 20, 26, theme, 'bold');
+        centeredText('originalPrice', originalLabel, originalX, 934, 510 - originalX, 20, '#8E99AA');
+        elements.push({ kind: 'strike', x: originalX, y: 934, width: Math.min(510 - originalX, measureText(originalLabel, 20)), color: '#8E99AA' });
+        rounded(520, 910, 160, 48, 24, theme);
+        centeredText('discount', `立省 ¥${((original - group) / 100).toFixed(2)}`, 600, 934, 154, 22, '#FFFFFF', 'bold', 'center');
       }
       if (String(state.leaderNote).trim()) {
-        rect(32, 952, 656, 56, '#f3f5f8');
-        text('leaderNote', `团长说：${state.leaderNote}`, { x: 48, y: 956, width: 624, height: 48 }, 16, 24, '#566177');
+        rounded(32, 984, 656, 72, 12, '#F3F5F8');
+        const noteLines = wrapText(String(state.leaderNote).trim(), 510, 21, measureText);
+        const noteHeight = Math.min(noteLines.length, 2) * 24;
+        const noteY = 984 + (72 - noteHeight) / 2;
+        centeredText('leaderLabel', '团长说：', 48, 1020, 100, 21, theme, 'bold');
+        text('leaderNote', state.leaderNote, { x: 153, y: noteY, width: 510, height: Math.min(48, 1056 - noteY) }, 21, 24, '#566177');
       }
-      rect(32, 1016, 656, 232, '#f7f8fa');
-      rect(32, 1020, 224, 224, '#ffffff');
-      elements.push({ kind: 'qr', field: 'qr', x: 56, y: 1044, width: 176, height: 176, quietZone: 24 });
-      text('ctaMain', state.ctaMain, { x: 280, y: 1046, width: 392, height: 36 }, 24, 32, '#242832', 'bold');
-      text('ctaSub', state.ctaSub, { x: 280, y: 1090, width: 392, height: 28 }, 18, 26, '#738098');
-      text('shipping', state.shipping, { x: 280, y: 1130, width: 392, height: 82 }, 16, 24, '#738098');
+      elements.push({ kind: 'dashed-line', x: 0, y: 1060, width: 720, color: '#DCE2E9' });
+      rounded(32, 1064, 656, 204, 20, '#F7F8FA', { stroke: '#E7EBF0' });
+      elements.push({ kind: 'qr', field: 'qr', x: 72, y: 1078, width: 176, height: 176, background: '#F7F8FA' });
+      text('ctaMain', state.ctaMain, { x: 294, y: 1094, width: 370, height: 38 }, 27, 36, '#242832', 'bold');
+      text('ctaSub', state.ctaSub, { x: 294, y: 1138, width: 370, height: 30 }, 20, 28, '#738098');
+      text('shipping', state.shipping, { x: 294, y: 1176, width: 370, height: 74 }, 18, 24, '#738098');
       return { theme, regions, elements, errors };
+    }
+
+    function roundedPath(ctx, x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     }
 
     function drawPoster(ctx, state, layout) {
@@ -327,31 +353,48 @@
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 720, 1280);
       for (const element of layout.elements) {
         if (element.kind === 'rect') { ctx.fillStyle = element.color; ctx.fillRect(element.x, element.y, element.width, element.height); }
+        if (element.kind === 'round-rect') {
+          ctx.save();
+          roundedPath(ctx, element.x, element.y, element.width, element.height, element.radius);
+          if (element.shadow) { ctx.shadowColor = 'rgba(29, 36, 48, 0.16)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 10; }
+          ctx.fillStyle = element.color; ctx.fill();
+          ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+          if (element.stroke) { ctx.strokeStyle = element.stroke; ctx.lineWidth = 1; ctx.stroke(); }
+          ctx.restore();
+        }
         if (element.kind === 'strike') { ctx.fillStyle = element.color; ctx.fillRect(element.x, element.y, element.width, 2); }
+        if (element.kind === 'dashed-line') { ctx.save(); ctx.strokeStyle = element.color; ctx.lineWidth = 1; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(element.x, element.y + 0.5); ctx.lineTo(element.x + element.width, element.y + 0.5); ctx.stroke(); ctx.restore(); }
         if (element.kind === 'text') {
           ctx.fillStyle = element.color;
           ctx.font = `${element.weight} ${element.fontSize}px "Microsoft YaHei", "PingFang SC", sans-serif`;
-          ctx.textBaseline = 'top'; ctx.fillText(element.text, element.x, element.y);
+          ctx.textBaseline = element.baseline || 'top'; ctx.textAlign = element.align || 'left'; ctx.fillText(element.text, element.x, element.y);
         }
         if (element.kind === 'badge') {
-          ctx.fillStyle = element.color; ctx.beginPath(); ctx.arc(element.x, element.y, 13, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px "Microsoft YaHei", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(element.number), element.x, element.y + 1); ctx.textAlign = 'left';
+          ctx.fillStyle = element.color; ctx.beginPath(); ctx.arc(element.x, element.y, 16, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#ffffff'; ctx.font = 'bold 18px "Microsoft YaHei", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(element.number), element.x, element.y + 1); ctx.textAlign = 'left';
         }
         if (element.kind === 'image' && state.image) {
           const p = element.placement;
+          ctx.save();
+          roundedPath(ctx, p.x, p.y, p.width, p.height, element.radius);
+          ctx.clip();
           ctx.drawImage(state.image.bitmap, p.sourceX, p.sourceY, p.sourceWidth, p.sourceHeight, p.drawX, p.drawY, p.drawWidth, p.drawHeight);
+          ctx.restore();
+          roundedPath(ctx, p.x + 1, p.y + 1, p.width - 2, p.height - 2, element.radius - 1);
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)'; ctx.lineWidth = 1; ctx.stroke();
         }
         if (element.kind === 'qr') {
           if (state.qr) {
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(element.x, element.y, element.width, element.height);
+            ctx.fillStyle = element.background; ctx.fillRect(element.x, element.y, element.width, element.height);
             const scale = Math.min(element.width / state.qr.width, element.height / state.qr.height);
             const width = state.qr.width * scale; const height = state.qr.height * scale;
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(state.qr.bitmap, element.x + (element.width - width) / 2, element.y + (element.height - height) / 2, width, height);
             ctx.imageSmoothingEnabled = true;
           } else {
-            ctx.fillStyle = '#eef1f5'; ctx.fillRect(element.x, element.y, element.width, element.height);
-            ctx.fillStyle = '#9ba7b9'; ctx.font = '20px "Microsoft YaHei", sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText('二维码', element.x + 88, element.y + 88); ctx.textAlign = 'left';
+            roundedPath(ctx, element.x, element.y, element.width, element.height, 16);
+            ctx.fillStyle = '#EEF1F5'; ctx.fill();
+            ctx.fillStyle = '#8E9BAC'; ctx.font = '20px "Microsoft YaHei", sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText('二维码', element.x + 88, element.y + 88); ctx.textAlign = 'left';
           }
         }
       }
@@ -396,7 +439,6 @@
 
     function init() {
       let state = createDefaultState();
-      let dirty = false;
       const selection = createImageSelectionController(async file => {
         const bitmap = await createImageBitmap(file);
         return { bitmap, width: bitmap.width, height: bitmap.height };
@@ -437,9 +479,9 @@
         state.bullets.forEach((value, index) => {
           const row = document.createElement('div'); row.className = 'bullet-row';
           const input = document.createElement('input'); input.value = value; input.setAttribute('aria-label', `核心卖点 ${index + 1}`);
-          input.addEventListener('input', () => { state.bullets[index] = input.value; dirty = true; refresh(); });
+          input.addEventListener('input', () => { state.bullets[index] = input.value; refresh(); });
           const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-bullet'; remove.textContent = '×'; remove.setAttribute('aria-label', `删除核心卖点 ${index + 1}`);
-          remove.addEventListener('click', () => { state.bullets.splice(index, 1); dirty = true; renderBullets(); refresh(); });
+          remove.addEventListener('click', () => { state.bullets.splice(index, 1); renderBullets(); refresh(); });
           row.append(input, remove); list.append(row);
         });
         $('#add-bullet').disabled = state.bullets.length >= 6;
@@ -454,9 +496,9 @@
         $$('[data-field]').forEach(input => { input.value = state[input.dataset.field]; });
         renderBullets(); refresh();
       }
-      $$('[data-field]').forEach(input => input.addEventListener('input', () => { state[input.dataset.field] = input.value; dirty = true; refresh(); }));
-      $$('[data-template]').forEach(button => button.addEventListener('click', () => { state.template = button.dataset.template; dirty = true; refresh(); }));
-      $('#add-bullet').addEventListener('click', () => { if (state.bullets.length < 6) { state.bullets.push(''); dirty = true; renderBullets(); refresh(); } });
+      $$('[data-field]').forEach(input => input.addEventListener('input', () => { state[input.dataset.field] = input.value; refresh(); }));
+      $$('[data-template]').forEach(button => button.addEventListener('click', () => { state.template = button.dataset.template; refresh(); }));
+      $('#add-bullet').addEventListener('click', () => { if (state.bullets.length < 6) { state.bullets.push(''); renderBullets(); refresh(); } });
       async function onFileChange(kind, event) {
         const file = event.target.files?.[0] || null;
         if (!file) return;
@@ -465,17 +507,16 @@
         event.target.value = '';
         if (result.stale) return;
         uploadErrors[kind] = result.errors?.[0]?.message || '';
-        if (result.applied) { state[kind] = selection.current(kind); dirty = true; setStatus(kind === 'qr' ? '二维码已更新' : '商品主图已更新'); }
+        if (result.applied) { state[kind] = selection.current(kind); setStatus(kind === 'qr' ? '二维码已更新' : '商品主图已更新'); }
         else setStatus(uploadErrors[kind] || '未更换图片');
         refresh();
       }
       $('#image-file').addEventListener('change', event => onFileChange('image', event));
       $('#qr-file').addEventListener('change', event => onFileChange('qr', event));
       $('#reset').addEventListener('click', () => {
-        if (dirty && !window.confirm('恢复示例会覆盖当前编辑内容，确定继续吗？')) return;
         selection.clear('image'); selection.clear('qr'); uploadErrors.image = ''; uploadErrors.qr = '';
         $('#image-file').value = ''; $('#qr-file').value = '';
-        state = createDefaultState(); dirty = false; fillInputs(); setStatus('已恢复示例');
+        state = createDefaultState(); fillInputs(); setStatus('已恢复示例');
       });
       $('#export').addEventListener('click', async () => {
         const button = $('#export'); button.disabled = true;
