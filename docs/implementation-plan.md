@@ -10,6 +10,8 @@
 
 **Spec:** [prd-example.md](prd-example.md)；项目约束见 [AGENTS.md](../AGENTS.md)。
 
+**执行状态（2026-10-22）：** Task 1–4 的应用代码与自动化测试已完成；Task 5 的说明和手工验收清单已编写。浏览器工具拒绝本地 `file://` 页面，Chrome、Edge 和真机扫码用例仍待在本机执行；详细记录见 [acceptance.md](../tests/acceptance.md)。以下复选框保留原始实施步骤，实际结果以提交记录和验收清单为准。
+
 ## Global Constraints
 
 - 根目录仅一个应用文件 `index.html`，CSS 和 JavaScript 均内联；可用 `file://` 直接打开。

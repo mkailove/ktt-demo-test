@@ -168,6 +168,13 @@
       return errors;
     }
 
+    function detectImageMime(bytes) {
+      if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return 'image/png';
+      if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return 'image/jpeg';
+      if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP') return 'image/webp';
+      return null;
+    }
+
     function createImageSelectionController(decode) {
       const selected = { image: null, qr: null };
       const request = { image: 0, qr: 0 };
@@ -182,9 +189,22 @@
           if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) early.push({ field: kind, message: '仅支持 JPG、PNG 或 WebP 图片' });
           if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) early.push({ field: kind, message: '图片不能超过 10 MB，且不能是空文件' });
           if (early.length) return { applied: false, errors: early };
+          if (typeof file.slice === 'function') {
+            try {
+              const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+              if (token !== request[kind]) return { applied: false, stale: true, errors: [] };
+              if (detectImageMime(header) !== file.type) return { applied: false, errors: [{ field: kind, message: '图片实际格式与文件类型不符' }] };
+            } catch {
+              if (token !== request[kind]) return { applied: false, stale: true, errors: [] };
+              return { applied: false, errors: [{ field: kind, message: '无法读取图片文件' }] };
+            }
+          }
           let decoded;
           try { decoded = await decode(file); }
-          catch { return { applied: false, errors: [{ field: kind, message: '图片无法解码，请重新选择文件' }] }; }
+          catch {
+            if (token !== request[kind]) return { applied: false, stale: true, errors: [] };
+            return { applied: false, errors: [{ field: kind, message: '图片无法解码，请重新选择文件' }] };
+          }
           if (token !== request[kind]) { close(decoded); return { applied: false, stale: true, errors: [] }; }
           const errors = validateImageMeta(file, decoded.width, decoded.height, kind);
           if (errors.length) { close(decoded); return { applied: false, errors }; }

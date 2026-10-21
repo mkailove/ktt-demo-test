@@ -49,3 +49,28 @@ test('a slow old selection cannot overwrite the later selection', async () => {
   assert.equal((await oldResult).applied, false);
   assert.equal(controller.current('image').file.name, 'new.png');
 });
+
+test('a file labeled PNG with non-image bytes cannot replace the previous image', async () => {
+  const controller = core.createImageSelectionController(async () => ({ bitmap: { close() {} }, width: 500, height: 500 }));
+  await controller.select('image', imageFile);
+  const previous = controller.current('image');
+  const fake = new Blob([new Uint8Array([71, 73, 70, 56, 57, 97, 0, 0, 0, 0, 0, 0])], { type: 'image/png' });
+  fake.name = 'fake.png';
+  const result = await controller.select('image', fake);
+  assert.equal(result.applied, false);
+  assert.equal(controller.current('image'), previous);
+});
+
+test('a stale file-read error does not surface after a newer image succeeds', async () => {
+  let rejectOld;
+  const controller = core.createImageSelectionController(async () => ({ bitmap: { close() {} }, width: 500, height: 500 }));
+  const delayed = {
+    name: 'old.png', type: 'image/png', size: 100,
+    slice: () => ({ arrayBuffer: () => new Promise((_, reject) => { rejectOld = reject; }) }),
+  };
+  const pending = controller.select('image', delayed);
+  assert.equal((await controller.select('image', imageFile)).applied, true);
+  rejectOld(new Error('read failed'));
+  assert.equal((await pending).stale, true);
+  assert.equal(controller.current('image').file.name, 'photo.png');
+});
