@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>快团团素材生成器</title>
+  <style>
+    :root { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; color: #242832; background: #f5f6f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #308bed; outline-offset: 2px; }
+    .app { display: grid; grid-template-columns: minmax(340px, 500px) minmax(0, 1fr); min-height: 100vh; }
+    .editor { background: #fff; border-right: 1px solid #e5e8ee; height: 100vh; overflow-y: auto; padding: 28px 24px 22px; }
+    .brand-line { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+    .brand-icon { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #333; border-radius: 7px; font-size: 20px; }
+    h1 { font-size: 20px; margin: 0; letter-spacing: -.04em; }
+    .local-badge { background: #e4f8eb; color: #27975d; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 5px 10px; }
+    section { border-top: 1px solid #e6e9ee; padding: 22px 0 20px; }
+    h2 { margin: 0 0 15px; font-size: 13px; color: #53617a; }
+    label { display: block; font-size: 13px; color: #4b5c75; font-weight: 700; margin-bottom: 8px; }
+    .field { margin-bottom: 15px; }
+    .field:last-child { margin-bottom: 0; }
+    input:not([type="file"]), select, textarea { display: block; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #d4ddec; border-radius: 8px; background: #fff; color: #252a34; outline-color: #ff4b5b; }
+    textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+    input[type="file"] { width: 100%; color: #546178; font-size: 12px; }
+    .help { font-size: 11px; color: #7d89a0; margin-top: 5px; line-height: 1.45; }
+    .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .template { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 5px; border: 1px solid #d5deeb; border-radius: 8px; background: #fff; color: #293044; font-size: 14px; min-height: 78px; }
+    .template::before { content: ""; display: block; width: 100%; height: 29px; border-radius: 6px; background: var(--swatch); }
+    .template[aria-pressed="true"] { border-color: #ff4b5b; color: #ff4b5b; font-weight: 700; box-shadow: 0 0 0 2px #ff4b5b16; }
+    .bullet-row { display: grid; grid-template-columns: 1fr 40px; gap: 7px; margin-bottom: 8px; }
+    .bullet-row input { margin: 0; }
+    .remove-bullet { border: 0; background: #ffe9eb; color: #fb4d60; border-radius: 8px; font-size: 20px; }
+    .add-bullet { width: 100%; min-height: 44px; border: 1px dashed #c7d2e4; border-radius: 8px; background: #fff; color: #4b668e; }
+    .add-bullet:disabled { cursor: default; opacity: .45; }
+    .error { font-size: 12px; color: #c32436; margin-top: 5px; min-height: 0; }
+    .error:empty { display: none; }
+    .actions { position: sticky; bottom: -22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff; padding: 16px 0 20px; border-top: 1px solid #e6e9ee; }
+    .actions button { min-height: 46px; border-radius: 7px; font-weight: 700; }
+    .reset { background: #fff; border: 1px solid #cbd5e3; color: #75839b; }
+    .export { background: #23272f; color: #fff; border: 1px solid #23272f; }
+    .status { min-height: 18px; color: #52647e; font-size: 12px; margin: -10px 0 0; }
+    .preview-area { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 35px; background-color: #f5f6f8; background-image: linear-gradient(#e8ebef 1px, transparent 1px), linear-gradient(90deg, #e8ebef 1px, transparent 1px); background-size: 28px 28px; }
+    .preview-frame { width: min(390px, 100%); aspect-ratio: 9 / 16; background: white; border-radius: 18px; box-shadow: 0 16px 36px #1d243012; overflow: hidden; }
+    .preview-fallback { height: 100%; display: flex; flex-direction: column; color: #222831; font-size: 12px; }
+    .poster-top { background: #ff4b5b; color: #fff; padding: 13px 20px; font-weight: 700; display: flex; justify-content: space-between; gap: 10px; }
+    .poster-tag { background: #ffffff45; border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+    .poster-main { flex: 1; padding: 8px 20px 0; min-height: 0; display: flex; flex-direction: column; }
+    .poster-title { font-size: 18px; font-weight: 800; line-height: 1.3; margin: 0 0 8px; }
+    .poster-subtitle { color: #7b879b; background: #f2f4f7; border-radius: 99px; padding: 5px 9px; align-self: start; }
+    .poster-image-placeholder { width: 60%; max-height: 45%; aspect-ratio: 3 / 4; margin: 12px auto 0; display: grid; place-items: center; background: #f0f3f6; color: #99a5b6; border-radius: 14px; box-shadow: 0 6px 14px #33415518; }
+    .poster-bullets { margin: auto 0 8px; padding: 0; list-style: none; font-weight: 700; }
+    .poster-bullets li { margin: 3px 0; }
+    .poster-bullets li::before { content: counter(item); counter-increment: item; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #ff4b5b; color: #fff; margin-right: 7px; font-size: 10px; }
+    .poster-bullets { counter-reset: item; }
+    .poster-price { background: #fff4f5; border: 1px solid #ffcdd2; border-radius: 10px; padding: 8px 12px; color: #ff4b5b; font-weight: 800; font-size: 22px; }
+    .poster-price small { color: #a7b0bf; font-size: 11px; font-weight: 400; text-decoration: line-through; margin-left: 10px; }
+    .poster-note { margin-top: 7px; padding: 8px; border-radius: 9px; background: #f2f4f7; color: #5e6b7f; font-size: 11px; }
+    .poster-bottom { margin: 8px 20px 26px; border-top: 1px dashed #d8dee7; padding-top: 7px; display: flex; gap: 10px; align-items: center; }
+    .poster-qr-placeholder { width: 51px; height: 51px; flex: 0 0 51px; display: grid; place-items: center; background: #f0f3f6; color: #9aa7ba; border-radius: 7px; font-size: 10px; }
+    .poster-cta { font-size: 12px; font-weight: 800; }
+    .poster-cta small { display: block; color: #8c98a9; font-size: 10px; font-weight: 400; }
+    @media (max-width: 800px) { .app { display: block; } .editor { height: auto; overflow: visible; border-right: 0; } .preview-area { min-height: 80vh; padding: 28px 16px; } .actions { bottom: 0; } }
+    @media (max-width: 390px) { .editor { padding: 20px 15px; } .template { font-size: 12px; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="editor">
+      <header class="brand-line"><span class="brand-icon" aria-hidden="true">🛒</span><h1>快团团素材生成器</h1><span class="local-badge">本地版</span></header>
+      <section aria-labelledby="template-heading">
+        <h2 id="template-heading">版式模板</h2>
+        <div class="templates" role="group" aria-label="版式模板">
+          <button class="template" type="button" data-template="center" style="--swatch:linear-gradient(90deg,#ff4b5b,#ff8b94)">居中促销</button>
+          <button class="template" type="button" data-template="left" style="--swatch:linear-gradient(90deg,#20a9c7,#72cee0)">左图清单</button>
+          <button class="template" type="button" data-template="hero" style="--swatch:linear-gradient(90deg,#ff783f,#ffab84)">大图爆款</button>
+        </div>
+      </section>
+      <section aria-labelledby="basic-heading">
+        <h2 id="basic-heading">基础信息</h2>
+        <div class="field"><label for="tag">顶部标签</label><input id="tag" data-field="tag"><div class="error" data-error="tag"></div></div>
+        <div class="field"><label for="brand">团长昵称 / 品牌</label><input id="brand" data-field="brand"><div class="error" data-error="brand"></div></div>
+        <div class="field"><label for="title">商品标题</label><input id="title" data-field="title" aria-required="true"><div class="error" data-error="title"></div></div>
+        <div class="field"><label for="subtitle">副标题 / 一句话卖点</label><input id="subtitle" data-field="subtitle"><div class="error" data-error="subtitle"></div></div>
+      </section>
+      <section aria-labelledby="image-heading">
+        <h2 id="image-heading">图片素材</h2>
+        <div class="field"><label for="image-file">商品主图</label><input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"><div class="help">JPG、PNG、WebP；单张不超过 10 MB。</div><div class="error" data-error="image"></div></div>
+        <div class="grid-two">
+          <div class="field"><label for="ratio-mode">图片展示比例</label><select id="ratio-mode" data-field="ratioMode"><option value="auto">自动识别</option><option value="3:4">3:4</option><option value="1:1">1:1</option><option value="original">保留原图比例</option></select></div>
+          <div class="field"><label for="fit-mode">图片适配方式</label><select id="fit-mode" data-field="fitMode"><option value="contain">完整展示</option><option value="cover">铺满裁切</option></select></div>
+        </div>
+        <div class="field"><label for="qr-file">二维码</label><input id="qr-file" type="file" accept="image/jpeg,image/png,image/webp"><div class="help">上传已有二维码；成图保留白色静区。</div><div class="error" data-error="qr"></div></div>
+      </section>
+      <section aria-labelledby="bullets-heading"><h2 id="bullets-heading">核心卖点</h2><div id="bullet-list"></div><button id="add-bullet" class="add-bullet" type="button">＋ 添加一条卖点</button><div class="error" data-error="bullets"></div></section>
+      <section aria-labelledby="price-heading">
+        <h2 id="price-heading">价格和转化文案</h2>
+        <div class="grid-two">
+          <div class="field"><label for="original-price">原价 ¥</label><input id="original-price" data-field="originalPrice" inputmode="decimal"><div class="error" data-error="originalPrice"></div></div>
+          <div class="field"><label for="group-price">团购价 ¥</label><input id="group-price" data-field="groupPrice" inputmode="decimal" aria-required="true"><div class="error" data-error="groupPrice"></div></div>
+        </div>
+        <div class="field"><label for="leader-note">团长说</label><textarea id="leader-note" data-field="leaderNote"></textarea><div class="error" data-error="leaderNote"></div></div>
+        <div class="field"><label for="shipping">规格 / 发货信息</label><input id="shipping" data-field="shipping"><div class="error" data-error="shipping"></div></div>
+        <div class="grid-two">
+          <div class="field"><label for="cta-main">按钮主文案</label><input id="cta-main" data-field="ctaMain"><div class="error" data-error="ctaMain"></div></div>
+          <div class="field"><label for="cta-sub">按钮副文案</label><input id="cta-sub" data-field="ctaSub"><div class="error" data-error="ctaSub"></div></div>
+        </div>
+      </section>
+      <div class="actions"><button id="reset" class="reset" type="button">恢复示例</button><button id="export" class="export" type="button">导出 PNG</button></div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="preview-area" aria-label="海报预览">
+      <div class="preview-frame">
+        <div id="preview-fallback" class="preview-fallback">
+          <div class="poster-top"><span id="preview-brand"></span><span id="preview-tag" class="poster-tag"></span></div>
+          <div class="poster-main"><p id="preview-title" class="poster-title"></p><span id="preview-subtitle" class="poster-subtitle"></span><div class="poster-image-placeholder">商品主图</div><ol id="preview-bullets" class="poster-bullets"></ol><div id="preview-price" class="poster-price"></div><div id="preview-note" class="poster-note"></div></div>
+          <div class="poster-bottom"><div class="poster-qr-placeholder">二维码</div><div class="poster-cta"><span id="preview-cta"></span><small id="preview-cta-sub"></small><small id="preview-shipping"></small></div></div>
+        </div>
+        <canvas id="poster-canvas" width="720" height="1280" hidden aria-label="海报画布"></canvas>
+      </div>
+    </div>
+  </main>
+  <script id="app-script">
+  const app = (() => {
+    function createDefaultState() {
+      return {
+        template: 'center', tag: '今日开团', brand: '小美优选·团长',
+        title: '【新疆直发】阿克苏冰糖心苹果 5斤装',
+        subtitle: '咬一口爆汁甜脆·产地现摘现发',
+        bullets: ['产地直发，没有中间商加价', '冰糖心占比高，一口爆汁甜', '坏果包赔，售后无忧'],
+        originalPrice: '39.90', groupPrice: '19.90',
+        leaderNote: '我自己吃了两箱，真的甜！这个价格基本就是产地价了。',
+        shipping: '5斤/箱·默认圆通·48h 内发货·坏果包赔',
+        ctaMain: '长按识别 跟团购买', ctaSub: '早买早发·手慢无',
+        ratioMode: 'auto', fitMode: 'contain', image: null, qr: null,
+      };
+    }
+
+    function countCodePoints(value) { return Array.from(value).length; }
+
+    function parseMoneyToCents(value) {
+      const text = String(value).trim();
+      if (!/^(0|[1-9]\d{0,5})(?:\.\d{1,2})?$/.test(text)) return null;
+      const [yuan, fraction = ''] = text.split('.');
+      return Number(yuan) * 100 + Number(fraction.padEnd(2, '0'));
+    }
+
+    function validateFields(state) {
+      const errors = [];
+      const add = (field, message) => errors.push({ field, message });
+      const checkText = (field, label, limit, multiline = false) => {
+        const value = String(state[field] ?? '');
+        const normalized = multiline ? value.replace(/\r\n?/g, '\n') : value.trim();
+        if (!multiline && /[\r\n]/.test(value)) add(field, `${label}不能换行`);
+        if (countCodePoints(normalized) > limit) add(field, `${label}最多 ${limit} 字`);
+        return normalized;
+      };
+      checkText('tag', '顶部标签', 12);
+      checkText('brand', '团长品牌', 24);
+      if (!checkText('title', '商品标题', 60)) add('title', '请填写商品标题');
+      checkText('subtitle', '副标题', 60);
+      checkText('leaderNote', '团长说', 48, true);
+      checkText('shipping', '发货信息', 40);
+      checkText('ctaMain', '购买主文案', 16);
+      checkText('ctaSub', '购买副文案', 24);
+      if (!Array.isArray(state.bullets) || state.bullets.length > 6) add('bullets', '核心卖点最多 6 条');
+      for (const bullet of state.bullets || []) {
+        if (countCodePoints(String(bullet).trim()) > 35) add('bullets', '每条核心卖点最多 35 字');
+        if (/[\r\n]/.test(String(bullet))) add('bullets', '核心卖点不能换行');
+      }
+      const group = parseMoneyToCents(state.groupPrice);
+      const original = String(state.originalPrice).trim() === '' ? null : parseMoneyToCents(state.originalPrice);
+      if (group === null || group <= 0) add('groupPrice', '团购价须大于 0，最多两位小数且不超过 999999.99 元');
+      if (String(state.originalPrice).trim() !== '' && original === null) add('originalPrice', '原价格式无效，最多两位小数且不超过 999999.99 元');
+      if (original !== null && group !== null && original < group) add('originalPrice', '原价不能低于团购价');
+      return errors;
+    }
+
+    function init() {
+      let state = createDefaultState();
+      let dirty = false;
+      const $ = selector => document.querySelector(selector);
+      const $$ = selector => Array.from(document.querySelectorAll(selector));
+      const status = $('#status');
+
+      function setStatus(text) { status.textContent = text; }
+      function showErrors() {
+        const errors = validateFields(state);
+        $$('[data-error]').forEach(node => { node.textContent = errors.find(error => error.field === node.dataset.error)?.message || ''; });
+        return errors;
+      }
+      function renderBullets() {
+        const list = $('#bullet-list');
+        list.replaceChildren();
+        state.bullets.forEach((value, index) => {
+          const row = document.createElement('div'); row.className = 'bullet-row';
+          const input = document.createElement('input'); input.value = value; input.setAttribute('aria-label', `核心卖点 ${index + 1}`);
+          input.addEventListener('input', () => { state.bullets[index] = input.value; dirty = true; refresh(); });
+          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-bullet'; remove.textContent = '×'; remove.setAttribute('aria-label', `删除核心卖点 ${index + 1}`);
+          remove.addEventListener('click', () => { state.bullets.splice(index, 1); dirty = true; renderBullets(); refresh(); });
+          row.append(input, remove); list.append(row);
+        });
+        $('#add-bullet').disabled = state.bullets.length >= 6;
+      }
+      function renderFallback() {
+        $('#preview-brand').textContent = state.brand;
+        $('#preview-tag').textContent = state.tag;
+        $('#preview-title').textContent = state.title;
+        $('#preview-subtitle').textContent = state.subtitle;
+        $('#preview-bullets').replaceChildren(...state.bullets.filter(item => item.trim()).map(item => { const li = document.createElement('li'); li.textContent = item; return li; }));
+        const cents = parseMoneyToCents(state.groupPrice);
+        $('#preview-price').textContent = cents === null ? '¥ —' : `¥ ${ (cents / 100).toFixed(2) }`;
+        const original = parseMoneyToCents(state.originalPrice);
+        if (original !== null && cents !== null && original > cents) { const small = document.createElement('small'); small.textContent = `¥${(original / 100).toFixed(2)}`; $('#preview-price').append(small); }
+        $('#preview-note').textContent = state.leaderNote;
+        $('#preview-cta').textContent = state.ctaMain;
+        $('#preview-cta-sub').textContent = state.ctaSub;
+        $('#preview-shipping').textContent = state.shipping;
+      }
+      function refresh() {
+        $$('[data-template]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.template === state.template)));
+        showErrors(); renderFallback();
+      }
+      function fillInputs() {
+        $$('[data-field]').forEach(input => { input.value = state[input.dataset.field]; });
+        renderBullets(); refresh();
+      }
+      $$('[data-field]').forEach(input => input.addEventListener('input', () => { state[input.dataset.field] = input.value; dirty = true; refresh(); }));
+      $$('[data-template]').forEach(button => button.addEventListener('click', () => { state.template = button.dataset.template; dirty = true; refresh(); }));
+      $('#add-bullet').addEventListener('click', () => { if (state.bullets.length < 6) { state.bullets.push(''); dirty = true; renderBullets(); refresh(); } });
+      $('#reset').addEventListener('click', () => {
+        if (dirty && !window.confirm('恢复示例会覆盖当前编辑内容，确定继续吗？')) return;
+        state = createDefaultState(); dirty = false; fillInputs(); setStatus('已恢复示例');
+      });
+      $('#export').addEventListener('click', () => { setStatus('请先完成图片上传和海报预览。'); });
+      fillInputs();
+    }
+    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields }, init };
+  })();
+  if (typeof document !== 'undefined') app.init();
+  </script>
+</body>
+</html>
