@@ -338,6 +338,42 @@
       ctx.restore();
     }
 
+    function validateForExport(state, layout) {
+      const errors = [...validateFields(state), ...(layout?.errors || [])];
+      if (!state.image) errors.push({ field: 'image', message: '请上传商品主图' });
+      if (!state.qr) errors.push({ field: 'qr', message: '请上传二维码' });
+      return errors;
+    }
+
+    function makeExportFilename(state, date) {
+      const template = { center: '居中促销', left: '左图清单', hero: '大图爆款' }[state.template] || '居中促销';
+      const cleaned = Array.from(String(state.title).replace(/[<>:"/\\|?*\x00-\x1f]/g, '')).slice(0, 20).join('').trim().replace(/[. ]+$/g, '') || '商品';
+      const pad = number => String(number).padStart(2, '0');
+      const stamp = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+      return `团购海报_${template}_${cleaned}_${stamp}.png`;
+    }
+
+    function createExportController(renderToCanvas, downloadCanvas) {
+      let busy = false;
+      return {
+        async export(state) {
+          if (busy) return { ok: false, busy: true };
+          busy = true;
+          try {
+            const snapshot = { ...state, bullets: [...state.bullets] };
+            const prepared = renderToCanvas(snapshot);
+            const errors = validateForExport(snapshot, prepared.layout);
+            if (errors.length) return { ok: false, errors };
+            const filename = makeExportFilename(snapshot, new Date());
+            await downloadCanvas(prepared.canvas, filename);
+            return { ok: true, filename };
+          } catch (error) {
+            return { ok: false, error: error?.message || 'PNG 生成失败，请重试' };
+          } finally { busy = false; }
+        },
+      };
+    }
+
     function init() {
       let state = createDefaultState();
       let dirty = false;
@@ -352,10 +388,26 @@
       const canvas = $('#poster-canvas');
       const context = canvas.getContext('2d');
       const measure = (value, size, weight = 'normal') => { context.font = `${weight} ${size}px "Microsoft YaHei", "PingFang SC", sans-serif`; return context.measureText(value).width; };
+      const exportController = createExportController(snapshot => {
+        const output = document.createElement('canvas'); output.width = 720; output.height = 1280;
+        const outputContext = output.getContext('2d');
+        const outputMeasure = (value, size, weight = 'normal') => { outputContext.font = `${weight} ${size}px "Microsoft YaHei", "PingFang SC", sans-serif`; return outputContext.measureText(value).width; };
+        const layout = buildPosterLayout(snapshot, outputMeasure);
+        drawPoster(outputContext, snapshot, layout);
+        return { canvas: output, layout };
+      }, (output, filename) => new Promise((resolve, reject) => {
+        output.toBlob(blob => {
+          if (!blob) { reject(new Error('PNG 编码失败，请重试')); return; }
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a'); anchor.href = url; anchor.download = filename;
+          anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+          resolve();
+        }, 'image/png');
+      }));
 
       function setStatus(text) { status.textContent = text; }
       function showErrors(layoutErrors) {
-        const errors = [...validateFields(state), ...layoutErrors];
+        const errors = validateForExport(state, { errors: layoutErrors });
         $$('[data-error]').forEach(node => { node.textContent = uploadErrors[node.dataset.error] || errors.find(error => error.field === node.dataset.error)?.message || ''; });
         return errors;
       }
@@ -405,10 +457,18 @@
         $('#image-file').value = ''; $('#qr-file').value = '';
         state = createDefaultState(); dirty = false; fillInputs(); setStatus('已恢复示例');
       });
-      $('#export').addEventListener('click', () => { setStatus('请先完成图片上传和海报预览。'); });
-      fillInputs();
+      $('#export').addEventListener('click', async () => {
+        const button = $('#export'); button.disabled = true;
+        setStatus('正在生成 PNG…');
+        const result = await exportController.export(state);
+        if (result.ok) setStatus(`已生成 ${result.filename}`);
+        else if (result.errors) { refresh(); setStatus(`无法导出：${result.errors[0].message}`); }
+        else setStatus(result.busy ? '正在导出，请稍候' : `导出失败：${result.error || '请重试'}`);
+        button.disabled = false;
+      });
+      fillInputs(); setStatus('请上传商品主图和二维码后导出 PNG。');
     }
-    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields, validateImageMeta, createImageSelectionController, computeImagePlacement, buildPosterLayout, drawPoster }, init };
+    return { core: { createDefaultState, countCodePoints, parseMoneyToCents, validateFields, validateImageMeta, createImageSelectionController, computeImagePlacement, buildPosterLayout, drawPoster, validateForExport, makeExportFilename, createExportController }, init };
   })();
   if (typeof document !== 'undefined') app.init();
   </script>
